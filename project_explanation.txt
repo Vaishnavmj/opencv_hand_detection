@@ -1,0 +1,86 @@
+
+# Hand Detection and Identification Using OpenCV
+
+## Description
+
+This project utilizes OpenCV and MediaPipe to identify and differentiate between left and right hands in real-time using a webcam feed. By analyzing hand landmarks, the program displays which hand is detected on the screen, enhancing interactive experiences such as gesture-based controls.
+
+## Code Explanation
+
+### 1. Importing Libraries
+
+```python
+import cv2 
+import mediapipe as mp
+from google.protobuf.json_format import MessageToDict
+```
+
+- **cv2**: This is the OpenCV library used for image processing and computer vision tasks.
+- **mediapipe**: A framework developed by Google that provides pre-built ML solutions, including hand tracking.
+- **MessageToDict**: A utility function that converts the protobuf message returned by MediaPipe to a dictionary format for easier access to data.
+
+### 2. Initializing Video Capture
+
+```python
+cap = cv2.VideoCapture(0)
+```
+
+This line initializes the webcam. The parameter `0` refers to the default camera on the device.
+
+### 3. Setting Up Hand Tracking
+
+```python
+mpHands = mp.solutions.hands 
+hands = mpHands.Hands(min_detection_confidence=0.75)
+```
+
+- The `Hands` class from the MediaPipe library is initialized with a minimum detection confidence of 75%. This means that the model will only output a result if it is at least 75% confident in its predictions.
+
+### 4. Main Loop for Real-Time Detection
+
+```python
+while True:
+    success, img = cap.read()
+    img = cv2.flip(img, 1)
+    imgRGB = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+    results = hands.process(imgRGB)
+```
+
+- Inside the loop, frames are continuously captured from the webcam.
+- The frame is flipped horizontally to create a mirror effect.
+- The color format is changed from BGR (OpenCV’s default) to RGB for MediaPipe processing.
+- The `process` method is called to detect hands in the current frame.
+
+### 5. Hand Detection and Identification
+
+```python
+if results.multi_hand_landmarks:
+    if len(results.multi_handedness) == 2:
+        cv2.putText(img, 'Both Hands', (250, 50), cv2.FONT_HERSHEY_COMPLEX, 0.9, (0, 255, 0), 2)
+    else:
+        for i in results.multi_handedness:
+            label = MessageToDict(i)['classification'][0]['label']
+            if label == 'Left':
+                cv2.putText(img, label + ' Hand', (20, 50), cv2.FONT_HERSHEY_COMPLEX, 0.9, (0, 255, 0), 2)
+            if label == 'Right':
+                cv2.putText(img, label + ' Hand', (460, 50), cv2.FONT_HERSHEY_COMPLEX, 0.9, (0, 255, 0), 2)
+```
+
+- If hand landmarks are detected, the code checks how many hands are present.
+- If both hands are detected, it displays "Both Hands" on the screen.
+- If only one hand is detected, it uses the `MessageToDict` function to retrieve the label for that hand (left or right) and displays it accordingly.
+
+### 6. Displaying the Image
+
+```python
+cv2.imshow('Image', img)
+if cv2.waitKey(1) & 0xff == ord('q'):
+    break
+```
+
+- The processed image is shown in a window named "Image."
+- The loop continues until the user presses 'q', which breaks the loop and ends the program.
+
+### Conclusion
+
+This project showcases the application of real-time hand detection and identification using OpenCV and MediaPipe, enabling the development of interactive gesture-based systems. It can serve as a foundation for more advanced projects such as gesture-controlled applications or games.
